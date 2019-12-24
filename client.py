@@ -2,6 +2,7 @@ import wx
 import telnetlib
 from time import sleep
 import _thread as thread
+import re
 
 class LoginFrame(wx.Frame):
     """
@@ -39,7 +40,7 @@ class LoginFrame(wx.Frame):
             else:
                 self.Close()
                 ChatFrame(None, 2, title='ShiYanLou Chat Client', size=(720, 400))
-        except Exception:
+        except Exception as e:
             self.showDialog('Error', 'Connect Fail!', (95, 60))
 
     def showDialog(self, title, content, size):
@@ -53,7 +54,6 @@ class ChatFrame(wx.Frame):
     """
     聊天窗口
     """
-
     def __init__(self, parent, id, title, size):
         # 初始化，添加控件并绑定事件
         wx.Frame.__init__(self, parent, id, title)
@@ -67,9 +67,12 @@ class ChatFrame(wx.Frame):
         '''
         此处添加 用户列表
         '''
-        self.userList = wx.ScrolledWindow(self, pos=(500, 5), size=(200,340))
-        self.userListTitle = wx.StaticText(self.userList, label='Online Users:')
+        self.userListWindow = wx.ScrolledWindow(self, pos=(500, 5), size=(200, 340))
+        self.userListTitle = wx.StaticText(self.userListWindow, label='Online Users:')
+        self.userList = wx.ListBox(self.userListWindow, -1, pos=(5, 40), size=(190, 325),
+                                   style=wx.LB_HSCROLL | wx.LB_SINGLE | wx.LB_ALWAYS_SB)
 
+        self.userList.Bind(wx.EVT_LISTBOX_DCLICK, self.privateChat)
         # 发送按钮绑定发送消息方法
         self.sendButton.Bind(wx.EVT_BUTTON, self.send)
         # Users按钮绑定获取在线用户数量方法
@@ -78,6 +81,17 @@ class ChatFrame(wx.Frame):
         self.closeButton.Bind(wx.EVT_BUTTON, self.close)
         thread.start_new_thread(self.receive, ())
         self.Show()
+
+    def showDialog(self, title, content, size):
+        # 显示错误信息对话框
+        dialog = wx.Dialog(self, title=title, size=size)
+        dialog.Center()
+        wx.StaticText(dialog, label=content)
+        dialog.ShowModal()
+
+
+    def privateChat(self, event):
+        self.showDialog('Attention', 'Chatting with ' + self.userList.GetStringSelection(), (195, 160))
 
     def send(self, event):
         # 发送消息
@@ -102,7 +116,19 @@ class ChatFrame(wx.Frame):
             sleep(0.6)
             result = con.read_very_eager()
             if result != '':
-                self.chatFrame.AppendText(result)
+                # 用户列表处理
+                if result.startswith(b'Online Users:'):
+                    result = result[14:]
+                    users = result.split(b'\n')
+                    users.pop()
+                    self.userList.Clear()
+                    self.userList.AppendItems(users)
+                # 私聊处理
+                elif result.startswith(b'Private Chat:'):
+                    pass
+                # 普通消息处理
+                else:
+                    self.chatFrame.AppendText(result)
 
 if __name__ == '__main__':
     app = wx.App()

@@ -155,7 +155,6 @@ class LoginRoom(Room):
             session.name = name
             session.enter(self.server.main_room)
 
-
 class LogoutRoom(Room):
     """
     处理退出用户
@@ -177,9 +176,9 @@ class ChatRoom(Room):
     def add(self, session):
         # 广播新用户进入
         session.push(b'Login Success')
+        Room.add(self, session)
         self.broadcast((session.name + ' has entered the room.\n').encode("utf-8"))
         self.server.users[session.name] = session
-        Room.add(self, session)
 
     def remove(self, session):
         # 广播用户离开
