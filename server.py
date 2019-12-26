@@ -1,12 +1,12 @@
 import asynchat
 import asyncore
-
-
+from time import sleep
 # 定义端口
 PORT = 6666
 
-# 定义结束异常类
+
 class EndSession(Exception):
+    # 定义结束异常类
     pass
 
 
@@ -30,6 +30,7 @@ class ChatServer(asyncore.dispatcher):
     def handle_accept(self):
         conn, addr = self.accept()
         ChatSession(self, conn)
+
 
 class ChatSession(asynchat.async_chat):
     """
@@ -74,6 +75,7 @@ class ChatSession(asynchat.async_chat):
         asynchat.async_chat.handle_close(self)
         self.enter(LogoutRoom(self.server))
 
+
 class CommandHandler:
     """
     命令处理类
@@ -102,6 +104,7 @@ class CommandHandler:
         except TypeError:
             self.unknown(session, cmd)
 
+
 class Room(CommandHandler):
     """
     包含多个用户的环境，负责基本的命令处理和广播
@@ -123,8 +126,7 @@ class Room(CommandHandler):
         # 向所有的用户发送指定消息
         # 使用 asynchat.asyn_chat.push 方法发送数据
         for session in self.sessions:
-            session.push(line)
-
+            session.send(line.encode('utf-8') + b'\xFE')
     def do_logout(self, session, line):
         # 退出房间
         raise EndSession
@@ -134,7 +136,7 @@ class LoginRoom(Room):
     """
     处理登录用户
     """
-
+    sleep(1)
     def add(self, session):
         # 用户连接成功的回应
         Room.add(self, session)
@@ -143,17 +145,23 @@ class LoginRoom(Room):
 
     def do_login(self, session, line):
         # 用户登录逻辑
+
         name = line.strip()
+
         # 获取用户名称
+        # 检查是否有同名用户
         if not name:
             session.push(b'UserName Empty')
-        # 检查是否有同名用户
+        # 检查用户名是否有特殊字符
+        elif ' ' in name or ':' in name:
+            session.push(b'UserName is not standard')
         elif name in self.server.users:
             session.push(b'UserName Exist')
         # 用户名检查成功后，进入主聊天室
         else:
             session.name = name
             session.enter(self.server.main_room)
+
 
 class LogoutRoom(Room):
     """
@@ -167,39 +175,52 @@ class LogoutRoom(Room):
         except KeyError:
             pass
 
-
 class ChatRoom(Room):
     """
     聊天用的房间
     """
-
     def add(self, session):
         # 广播新用户进入
         session.push(b'Login Success')
         Room.add(self, session)
-        self.broadcast((session.name + ' has entered the room.\n').encode("utf-8"))
+        userData = 'Online Users:\n'
+        for other in self.sessions:
+            userData = userData + other.name + '\n'
+        self.broadcast(userData)
+        self.broadcast('系统消息：' + session.name + ' 加入了聊天室.\n')
         self.server.users[session.name] = session
 
     def remove(self, session):
         # 广播用户离开
         Room.remove(self, session)
-        self.broadcast((session.name + ' has left the room.\n').encode("utf-8"))
+        self.broadcast('系统消息：' + session.name + ' 离开了聊天室.\n')
 
     def do_say(self, session, line):
         # 客户端发送消息
-        self.broadcast((session.name + ': ' + line + '\n').encode("utf-8"))
+        self.broadcast(session.name + ': ' + line + '\n')
+
 
     def do_look(self, session, line):
         # 查看在线用户
-        session.push(b'Online Users:\n')
+        userData = 'Online Users:\n'
         for other in self.sessions:
-            session.push((other.name + '\n').encode("utf-8"))
+            userData = userData + other.name + '\n'
+        self.broadcast(userData)
+
+    def do_Psay(self, session, line):
+        tuser, msg, _ = line.split('\xFD')
+        for sess in self.sessions:
+            if sess.name == tuser:
+                try:
+                    sess.send('Private Chat:'.encode('utf-8') + b'\xFD' + session.name.encode('utf-8') + b'\xFD' + msg.encode('utf-8') + b'\xFE')
+                except Exception as e:
+                    print(e)
+
 
 if __name__ == '__main__':
-
     s = ChatServer(PORT)
     try:
-        print("chat serve run at '0.0.0.0:{0}'".format(PORT))
+        print("闪讯服务器正在'0.0.0.0:{0}'上运行！".format(PORT))
         asyncore.loop()
     except KeyboardInterrupt:
         print("chat server exit")
