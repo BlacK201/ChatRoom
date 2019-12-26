@@ -41,8 +41,14 @@ class LoginFrame(wx.Frame):
                 self.showDialog('Error', '用户名不规范！', (200, 100))
             else:
                 self.Close()
+<<<<<<< HEAD
                 ChatFrame(None, 2, title=('闪讯聊天室  ' + '用户名: ' + self.userName.GetLineText(0)), size=(610, 390),
                           style=(wx.RESIZE_BORDER ^ wx.DEFAULT_FRAME_STYLE ^ wx.MAXIMIZE_BOX))
+=======
+#                ChatFrame(None, 2, title='Chat Room',size=(652,370))
+                #大框框
+                ChatFrame(None, 2, title='Chat Room    '+ "用户名: " + self.userName.GetLineText(0), size=(588, 370))
+>>>>>>> e71c667ec7f1c58a71a4494fb71f2feea9641493
         except Exception as e:
             self.showDialog('Error', '无法连接服务器!', (95, 60))
             print(e)
@@ -59,12 +65,18 @@ class ChatFrame(wx.Frame):
     """
     聊天窗口
     """
+<<<<<<< HEAD
 
     def __init__(self, parent, id, title, size, style):
+=======
+    
+    def __init__(self, parent, id, title, size):
+>>>>>>> e71c667ec7f1c58a71a4494fb71f2feea9641493
         # 初始化，添加控件并绑定事件
         wx.Frame.__init__(self, parent, id, title, style=style)
         self.SetSize(size)
         self.Center()
+<<<<<<< HEAD
         # 消息框
         self.chatFrame = wx.TextCtrl(self, pos=(5, 5), size=(426, 310), style=wx.TE_MULTILINE | wx.TE_READONLY)
         self.message = wx.TextCtrl(self, pos=(5, 320), size=(275, 25))
@@ -73,21 +85,45 @@ class ChatFrame(wx.Frame):
         self.closeButton = wx.Button(self, label="关闭", pos=(373, 320), size=(58, 25))
         self.emojiButton = wx.Button(self, label='😁', pos=(279, 320), size=(30, 25))
 
+=======
+        #消息框
+        self.chatFrame = wx.TextCtrl(self, pos=(5, 5), size=(426, 310), style=wx.TE_MULTILINE | wx.TE_READONLY)
+        self.message = wx.TextCtrl(self, pos=(5, 320), size=(275, 25))
+
+        # bitmap = wx.Image("emoji.jpeg",wx.BITMAP_TYPE_JPEG).ConvertToBitmap()
+        # self.emojiButton= wx.BitmapButton(panel,-1,bitmap,pos=(380,320), size=(25, 25))
+        self.sendButton = wx.Button(self, label="发送 ", pos=(310, 320), size=(58, 25))
+        #self.usersButton = wx.Button(self, label="Users", pos=(373, 320), size=(58, 25))
+        self.closeButton = wx.Button(self, label="关闭", pos=(373, 320), size=(58, 25))
+        self.languageButton = wx.Button(self, label='😁', pos=(279, 320), size=(30, 25))
+>>>>>>> e71c667ec7f1c58a71a4494fb71f2feea9641493
         '''
         此处添加 用户列表
         '''
         self.userListWindow = wx.Panel(self, pos=(436, 8), size=(150, 340))
+<<<<<<< HEAD
         self.userListTitle = wx.StaticText(self.userListWindow, label="在线用户:")
+=======
+        self.userListTitle = wx.StaticText(self.userListWindow, label = "在线用户:")
+>>>>>>> e71c667ec7f1c58a71a4494fb71f2feea9641493
         self.userList = wx.ListBox(self.userListWindow, -1, pos=(0, 20), size=(146, 287.5),
                                    style=wx.LB_HSCROLL | wx.LB_SINGLE | wx.LB_ALWAYS_SB)
         self.userList.Bind(wx.EVT_LISTBOX_DCLICK, self.privateChat)
         # 发送按钮绑定发送消息方法
         self.sendButton.Bind(wx.EVT_BUTTON, self.send)
         # Users按钮绑定获取在线用户数量方法
+<<<<<<< HEAD
         # self.usersButton.Bind(wx.EVT_BUTTON, self.lookUsers)
         # 关闭按钮绑定关闭方法
         self.closeButton.Bind(wx.EVT_BUTTON, self.close)
         self.emojiButton.Bind(wx.EVT_BUTTON, self.emoji)
+=======
+        #self.usersButton.Bind(wx.EVT_BUTTON, self.lookUsers)
+        # 关闭按钮绑定关闭方法
+        self.closeButton.Bind(wx.EVT_BUTTON, self.close)
+        #切换语言绑定切换方法
+        #self.languageButton.Bind(wx.EVT_BUTTON, self.changeLanguage)
+>>>>>>> e71c667ec7f1c58a71a4494fb71f2feea9641493
         thread.start_new_thread(self.receive, ())
         self.Show()
 
@@ -131,7 +167,18 @@ class ChatFrame(wx.Frame):
         con.write(b'logout\n')
         con.close()
         self.Close()
-
+    '''
+    ClickNum = 0
+    def changeLanguage(self, event):
+        self.ClickNum+=1
+        if self.ClickNum % 2 == 1:  #根据按下次数判断
+            self.sendButton.SetLabel("发送")#修改按键的标签
+            print(self.sendButton.GetLabel())#打印信息（返回按键的标签信息）
+        else:
+            self.sendButton.SetLabel("send")
+            self.ClickNum = 0
+            print(self.sendButton.GetLabel())
+    '''
     def receive(self):
         # 接受服务器的消息
         self.lookUsers(0)
@@ -238,8 +285,39 @@ class PrivateChatFrame(wx.Frame):
                     else:
                         self.chatFrame.AppendText(result)
 
+class personal_ChatFrame(ChatFrame):
+    def __init__(self, parent, id, title, size):
+        # 初始化，添加控件并绑定事件
+        wx.Frame.__init__(self, parent, id, title)
+        self.SetSize(size)
+        self.Center()
+        self.chatFrame = wx.TextCtrl(self, pos=(5, 5), size=(436, 310), style=wx.TE_MULTILINE | wx.TE_READONLY)
+        self.message = wx.TextCtrl(self, pos=(5, 320), size=(275, 25))
+        self.sendButton = wx.Button(self, label="发送 ", pos=(310, 320), size=(58, 25))
+        #self.usersButton = wx.Button(self, label="Users", pos=(373, 320), size=(58, 25))
+        self.closeButton = wx.Button(self, label="关闭", pos=(373, 320), size=(58, 25))
+        #self.languageButton = wx.Button(self, label='中/En', pos=(436, 320), size=(58, 25))
+        self.userList.Bind(wx.EVT_LISTBOX_DCLICK, self.privateChat)
+        # 发送按钮绑定发送消息方法
+        self.sendButton.Bind(wx.EVT_BUTTON, self.send)
+        # Users按钮绑定获取在线用户数量方法
+        #self.usersButton.Bind(wx.EVT_BUTTON, self.lookUsers)
+        # 关闭按钮绑定关闭方法
+        self.closeButton.Bind(wx.EVT_BUTTON, self.close)
+        #切换语言绑定切换方法
+        #self.languageButton.Bind(wx.EVT_BUTTON, self.changeLanguage)
+        thread.start_new_thread(self.receive, ())
+        #self.Show()
+    
+
+        
+
 if __name__ == '__main__':
     app = wx.App()
     con = telnetlib.Telnet()
+<<<<<<< HEAD
     LoginFrame(None, -1, title="欢迎使用 “闪讯” ", size=(320, 250))
+=======
+    LoginFrame(None, -1, title="Login", size=(320, 250))
+>>>>>>> e71c667ec7f1c58a71a4494fb71f2feea9641493
     app.MainLoop()
